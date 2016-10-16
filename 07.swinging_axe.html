@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+	<style>
+		html, body {
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			margin:0;
+			padding:0;
+			border: 0;
+		}
+
+	</style>
+	<script src="js/utils.js"></script>
+	<script src="js/Animator.js"></script>
+	<script src="js/ImageManager.js"></script>
+
+	<script>
+
+		var ctx;
+		var animator;
+		var lastUpdate = new Date();
+		var imageManager;
+
+		function init() {
+
+			imageManager = new ImageManager();
+			imageManager.load({
+				"axe": "img/axe.png"
+			}, onLoaded);
+
+			ctx = initFullScreenCanvas("mainCanvas").getContext("2d");
+
+			animator = new Animator(500);
+			animator.setRepeatCount(Animator.INFINITE);
+			animator.setRepeatBehavior(Animator.RepeatBehavior.REVERSE);
+			animator.setAcceleration(0.85);
+			animator.setDeceleration(0.15);
+
+		}
+
+		function onLoaded() {
+			animator.start();
+			animate(0);
+		}
+
+		function animate(t) {
+			var startSize = 0.7;
+			var endSize = 1.3;
+
+			var startAngle = -Math.PI/4;
+			var endAngle = Math.PI/4;
+
+			var now = t || new Date().getTime();
+			var deltaTime = now - lastUpdate;
+			lastUpdate = now;
+
+			var fraction = animator.update(deltaTime);
+			var size = (1 - fraction)*startSize + fraction*endSize;
+			var angle = (1 - fraction)*startAngle + fraction*endAngle;
+
+			ctx.fillStyle = "white";
+			ctx.fillRect(0, 0, 500, 500);
+
+			drawAxe(size, angle, ctx);
+			requestAnimationFrame(arguments.callee);
+		}
+
+		function drawAxe(size, angle, ctx) {
+			var img = imageManager.get("axe");
+
+			ctx.save();
+			ctx.translate(100, 100);
+			ctx.rotate(angle);
+			ctx.scale(size, size);
+			ctx.drawImage(img, 150 - 70*size, 150 - 100*size);
+
+			ctx.restore();
+		}
+
+		function initFullScreenCanvas(canvasId) {
+			var canvas = document.getElementById(canvasId);
+			resizeCanvas(canvas);
+			window.addEventListener("resize", function() {
+				resizeCanvas(canvas);
+			});
+			return canvas;
+		}
+
+		function resizeCanvas(canvas) {
+			canvas.width  = document.width || document.body.clientWidth;
+			canvas.height = document.height || document.body.clientHeight;
+		}
+
+	</script>
+</head>
+<body onload="init()">
+<canvas id="mainCanvas" width="500px" height="500px"></canvas>
+</body>
+</html>

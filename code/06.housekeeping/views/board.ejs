@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+	<style>
+		.cell {
+			display: inline;
+			font-family: monospace;
+			font-size: 2em;
+			cursor: pointer;
+		}
+
+		h1 {
+			font-family: monospace;
+		}
+	</style>
+	<script>
+		function turn(col) {
+			location.href = "/?turn=" + col;
+		}
+	</script>
+</head>
+<body>
+<h1>Welcome to the Four Balls!</h1>
+<div class="board">
+	<% for (var i = 0; i < board.getRows(); i++) {
+		for (var j = 0; j < board.getCols(); j++) {
+			%><div class="cell" onclick="turn(<%= j %>)"><%
+			switch(board.getPiece(j, i)) {
+				case BoardModel.GREEN: %>X<% break;
+				case BoardModel.RED: %>O<% break;
+				default: %>-<% break;
+			}
+			%></div><%
+		}
+		%><br /><%
+	} %>
+</div>
+<a href="about.html">about</a><br/>
+<a href="?err=true">test error</a><br/>
+Total turns: <%= totalTurns %>
+</body>
+</html>

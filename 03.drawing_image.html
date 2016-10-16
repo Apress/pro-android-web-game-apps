@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+	<style>
+		html, body {
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			margin:0;
+			padding:0;
+			border: 0;
+		}
+	</style>
+	
+	<script src="js/ImageManager.js"></script>
+
+	<script>
+		var ctx;
+		var imageManager;
+		function init() {
+			ctx = initFullScreenCanvas("mainCanvas").getContext("2d");
+			imageManager = new ImageManager();
+			imageManager.load({
+				"axe": "img/axe.png"
+			}, onLoaded);
+		}
+
+		function onLoaded() {
+			console.log("All images are loaded");
+			ctx.drawImage(imageManager.get("axe"), 0, 0, 77, 132, 10, 10, 77, 132);
+		}
+
+		function initFullScreenCanvas(canvasId) {
+			var canvas = document.getElementById(canvasId);
+			resizeCanvas(canvas);
+			window.addEventListener("resize", function() {
+				resizeCanvas(canvas);
+			});
+			return canvas;
+		}
+
+		function resizeCanvas(canvas) {
+			canvas.width  = document.width || document.body.clientWidth;
+			canvas.height = document.height || document.body.clientHeight;
+		}
+	</script>
+</head>
+<body onload="init()">
+<canvas id="mainCanvas" width="100" height="100"></canvas>
+</body>
+</html>

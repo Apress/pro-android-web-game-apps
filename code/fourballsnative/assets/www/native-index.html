@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+    <style>
+        html, body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin:0;
+            padding:0;
+            border: 0;
+        }
+        
+        #main {
+            font-size: 20px;
+        }
+    </style>
+    <script src="cordova-2.0.0.js"></script>
+	<script>
+		document.addEventListener("deviceready", onDeviceReady, false);
+
+		function onDeviceReady() {
+			var options = new ContactFindOptions();
+			options.filter = "";
+			options.multiple = true;
+			var fields = ["displayName"];
+			navigator.contacts.find(fields, onSuccess, onError, options);
+		}
+
+		function onSuccess(contacts) {
+			var list = document.getElementById("contacts");
+			alert("Got contacts " + contacts.length);
+			for (var i = 0; i < contacts.length; i++) {
+				list.innerHTML += "<li>" + contacts[i].displayName + "</li>";
+				alert("First done");
+			}
+		}
+
+		function onError() {
+			alert("Could not get contacts");
+		}
+	</script>
+
+</head>
+<body>
+    <ul id="contacts"></ul>
+</body>
+</html>

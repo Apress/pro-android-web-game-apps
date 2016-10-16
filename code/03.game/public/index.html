@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+    <style>
+    	html, body {
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			margin:0;
+			padding:0;
+			border: 0;
+		}
+
+
+		#online_users {
+			font-size: 2.5em;
+			cursor: pointer;
+			list-style: none;
+			padding-left: 0;
+		}
+
+		#online_users li {
+			margin: 0.2em;
+			padding: 0.2em 0.2em 0.2em 0.2em;
+
+			font-weight:bold;
+			text-align:center;
+			border: 3px solid #456f9a;
+			background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#7FA6CD), to(#5F88B0));
+			box-shadow:3px 3px 3px #000000;
+			border-radius: 6px;
+		}
+
+		#online_users li.ready {
+			color: white;
+		}
+
+		#online_users li.playing {
+			color: #006400;
+		}
+    </style>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/LobbyUserList.js"></script>
+    <script src="js/BoardRenderer.js"></script>
+	<script src="js/BoardModel.js"></script>
+	<script src="js/OnlineGame.js"></script>
+
+
+    <script>
+        var socket;
+        var userList;
+        var game;
+        var currentScreen = "lobby";
+        
+        function init() {
+			var canvas = initFullScreenCanvas("mainCanvas");
+
+			if (isTouchDevice()) {
+				canvas.addEventListener("touchstart", function(e) {
+					var touch = event.targetTouches[0];
+					game.handleClick(touch.pageX, touch.pageY);
+					e.stopPropagation();
+					e.preventDefault();
+				}, false);
+			} else {
+				canvas.addEventListener("mouseup", function(e) {
+					game.handleClick(e.pageX, e.pageY);
+					e.stopPropagation();
+					e.preventDefault();
+				}, false);
+			}
+            
+            socket = io.connect();
+            game = new OnlineGame(canvas, socket, onGameEnd);
+
+            socket.on("user-joined", function (user) {
+                console.log (user.name + " joined");
+                userList.add(user.id, user.name, user.status);
+            });
+
+            socket.on("user-left", function (user) {
+                console.log (user.name + " left");
+                userList.remove(user.id);
+            });
+
+            socket.on("user-playing", function (user) {
+                userList.setStatus(user.id, "playing");
+            });
+
+            socket.on("user-ready", function (user) {
+                userList.setStatus(user.id, "ready");
+            });
+
+            socket.on("user-list", function (data) {
+                for (var userId in data.users) {
+                    var user = data.users[userId];
+                    userList.add(user.id, user.name, user.status);
+                }
+            });
+            
+            socket.on("challenged", function (data) {
+                switchScreen("game");
+                alert("Challanged by " + data.player1.name);
+            });
+            
+            socket.on("info", function (info) {
+                console.log (info.text);
+            });
+            
+            var listElement = document.getElementById("online_users");
+            userList = new LobbyUsersList(listElement, onChallenge);
+            switchScreen("lobby");
+		}
+        
+        function initFullScreenCanvas(canvasId) {
+			var canvas = document.getElementById(canvasId);
+			resizeCanvas(canvas);
+			window.addEventListener("resize", function() {
+				resizeCanvas(canvas);
+			});
+			return canvas;
+		}
+
+		function resizeCanvas(canvas) {
+			canvas.width  = document.width || document.body.clientWidth;
+			canvas.height = document.height || document.body.clientHeight;
+			game && game.handleResize();
+		}
+
+		function isTouchDevice() {
+			return ('ontouchstart' in document.documentElement);
+		}
+        
+        function switchScreen(screenId) {
+            document.getElementById(currentScreen).style.display = "none";
+            document.getElementById(screenId).style.display = "block";
+            currentScreen = screenId;
+        }
+        
+        function onGameEnd() {
+            switchScreen("lobby");
+        }
+        
+        function onChallenge(userId, userName, status) {
+            socket.emit('challenge', userId, function (data) {
+                if (data.error) {
+                    // Something is wrong, maybe the other party has left
+                    alert(data.error);
+                } else {
+                    // The game has started
+                    switchScreen("game");
+                    alert("Playing with " + data.player2.name);
+                }
+            });
+        }
+
+    </script>
+</head>
+<body onload="init()">
+    <div id="lobby">
+        <ul id="online_users"></ul>
+    </div>
+    <div id="game" style="display: none">
+        <canvas id="mainCanvas" width="30px" height="30px"></canvas>
+    </div>
+</body>
+</html>

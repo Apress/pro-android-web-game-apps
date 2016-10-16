@@ -1,0 +1,21 @@
+c:\apps\projects\jsbook\chap15\fourballsnative\bin\FourBalls.ap_ \
+ : c:\apps\projects\jsbook\chap15\fourballsnative\res\drawable\icon.png \
+c:\apps\projects\jsbook\chap15\fourballsnative\res\drawable-hdpi\icon.png \
+c:\apps\projects\jsbook\chap15\fourballsnative\res\drawable-ldpi\icon.png \
+c:\apps\projects\jsbook\chap15\fourballsnative\res\drawable-mdpi\icon.png \
+c:\apps\projects\jsbook\chap15\fourballsnative\res\layout\main.xml \
+c:\apps\projects\jsbook\chap15\fourballsnative\res\values\strings.xml \
+c:\apps\projects\jsbook\chap15\fourballsnative\res\xml\config.xml \
+c:\apps\projects\jsbook\chap15\fourballsnative\bin\res\drawable\icon.png \
+c:\apps\projects\jsbook\chap15\fourballsnative\bin\res\drawable-hdpi\icon.png \
+c:\apps\projects\jsbook\chap15\fourballsnative\bin\res\drawable-ldpi\icon.png \
+c:\apps\projects\jsbook\chap15\fourballsnative\bin\res\drawable-mdpi\icon.png \
+c:\apps\projects\jsbook\chap15\fourballsnative\assets\www \
+c:\apps\projects\jsbook\chap15\fourballsnative\assets\www\cordova-2.0.0.js \
+c:\apps\projects\jsbook\chap15\fourballsnative\assets\www\index.html \
+c:\apps\projects\jsbook\chap15\fourballsnative\assets\www\js \
+c:\apps\projects\jsbook\chap15\fourballsnative\assets\www\native-index.html \
+c:\apps\projects\jsbook\chap15\fourballsnative\assets\www\js\BoardModel.js \
+c:\apps\projects\jsbook\chap15\fourballsnative\assets\www\js\BoardRenderer.js \
+c:\apps\projects\jsbook\chap15\fourballsnative\assets\www\js\Game.js \
+c:\apps\projects\jsbook\chap15\fourballsnative\AndroidManifest.xml \

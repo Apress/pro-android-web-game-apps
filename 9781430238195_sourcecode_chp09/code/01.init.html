@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+	<style>
+		html, body {
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			margin:0;
+			padding:0;
+			border: 0;
+		}
+
+	</style>
+
+	<!-- gl-matrix – we will need it in every example -->
+	<script src="js/gl-matrix.js"></script>
+	<script>
+		var canvas;
+
+		/* The WebGL context*/
+		var gl;
+
+		function init() {
+			canvas = initFullScreenCanvas("mainCanvas");
+
+			gl = getWebGLContext(canvas);
+			gl.clearColor(0.0, 0.0, 0.0, 1.0);
+			gl.enable(gl.DEPTH_TEST);
+
+			drawScene();
+		}
+
+		/**
+		 * Returns WebGL context.
+		 */
+		function getWebGLContext(canvas) {
+			var ctx;
+			try {
+				ctx = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+			} catch (e) {}
+
+			if (ctx)
+				return ctx;
+
+			throw "Could not initialize WebGL";
+		}
+
+		/**
+		 * Renders the scene
+		 */
+		function drawScene() {
+			gl.viewport(0, 0, canvas.width, canvas.height);
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+			// We will add rendering code here.
+		}
+
+		function initFullScreenCanvas(canvasId) {
+			var canvas = document.getElementById(canvasId);
+			resizeCanvas(canvas);
+			window.addEventListener("resize", function() {
+				resizeCanvas(canvas);
+			});
+			return canvas;
+		}
+
+		function resizeCanvas(canvas) {
+			canvas.width  = document.width || document.body.clientWidth;
+			canvas.height = document.height || document.body.clientHeight;
+			gl && drawScene();
+		}
+	</script>
+</head>
+<body onload="init()">
+<canvas id="mainCanvas" width="20px" height="20px"></canvas>
+</body>
+</html>

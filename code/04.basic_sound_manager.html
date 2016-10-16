@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+<style>
+	html, body {
+		overflow: hidden;
+		width: 100%;
+		height: 100%;
+		margin:0;
+		padding:0;
+		border: 0;
+	}
+
+</style>
+<script src="js/soundmanager2.js"></script>
+<script>
+	soundManager.url = 'swf/';
+	soundManager.flashVersion = 9;
+	soundManager.onready(function() {
+		soundManager.createSound({
+			id:'loopTest',
+			url:'sound/theme.mp3',
+			autoLoad:true,
+			onload:function() {
+				this.play();
+			}
+		});
+	});
+
+</script>
+</head>
+<body>
+</body>
+</html>

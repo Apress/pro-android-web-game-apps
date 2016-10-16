@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+	<style>
+		#wrapper {
+			width: 750px;
+		}
+	</style>
+
+	<script src="js/utils.js"></script>
+	<script src="js/EventEmitter.js"></script>
+	<script src="js/input/InputHandlerBase.js"></script>
+	<script src="js/input/TouchInputHandler.js"></script>
+	<script src="js/input/MouseInputHandler.js"></script>
+	<script src="js/input/InputHandler.js"></script>
+	<script src="js/ImageManager.js"></script>
+
+	<script>
+
+		var contexts = [];
+		var operations = [
+			'source-over','source-in','source-out','source-atop',
+			'destination-over','destination-in','destination-out','destination-atop',
+			'lighter','darker','copy','xor'
+		];
+		var imageManager;
+
+		function init() {
+			for (var i = 0; i < operations.length; i++) {
+				appendHeader(operations[i]);
+				for (var j = 0; j < 3; j++) {
+					contexts.push(appendCanvas().getContext("2d"));
+				}
+			}
+
+			imageManager = new ImageManager();
+			imageManager.load( {
+				"circle": "img/circle.png",
+				"rect": "img/rect.png"
+			}, start);
+		}
+
+		function appendCanvas() {
+			var canvas = document.createElement("canvas");
+			canvas.width = canvas.height = 250;
+			document.getElementById("wrapper").appendChild(canvas);
+			return canvas;
+		}
+
+		function appendHeader(name) {
+			var h1 = document.createElement("h1");
+			h1.innerHTML = name;
+			document.getElementById("wrapper").appendChild(h1);
+		}
+
+		function start() {
+			for (var i = 0; i < operations.length; i++) {
+				// Destination
+				var context = contexts[i*3];
+				context.drawImage(imageManager.get("rect"), 0, 0);
+
+				// Source
+				context = contexts[i*3 + 1];
+				context.drawImage(imageManager.get("circle"), 50, 50);
+
+				// Composite
+				context = contexts[i*3 + 2];
+				context.drawImage(imageManager.get("rect"), 0, 0);
+				context.globalCompositeOperation = operations[i];
+				context.drawImage(imageManager.get("circle"), 50, 50);
+			}
+		}
+	</script>
+</head>
+<body onload="init()">
+	<div id="wrapper"></div>
+</body>
+</html>

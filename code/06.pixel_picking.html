@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+	<style>
+		html, body {
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			margin:0;
+			padding:0;
+			border: 0;
+		}
+	</style>
+
+	<script src="js/utils.js"></script>
+	<script src="js/EventEmitter.js"></script>
+	<script src="js/input/InputHandlerBase.js"></script>
+	<script src="js/input/TouchInputHandler.js"></script>
+	<script src="js/input/MouseInputHandler.js"></script>
+	<script src="js/input/InputHandler.js"></script>
+	<script src="js/ImageManager.js"></script>
+
+	<script>
+		var canvas;
+		var bufferCanvas;
+		var maskCanvas;
+
+		var ctx;
+		var imageManager;
+
+		var shapes = [
+			{image: "circle", x: 50, y: 50},
+			{image: "house", x: 120, y: 30},
+			{image: "rect", x: 70, y: 170}
+		];
+		var shapeSelected = false;
+
+		function init() {
+			canvas = initFullScreenCanvas("mainCanvas");
+
+			maskCanvas = document.createElement("canvas");
+			maskCanvas.width = 1;
+			maskCanvas.height = 1;
+			maskCanvas.style.display = "none";
+			bufferCanvas = document.createElement("canvas");
+
+			ctx = canvas.getContext("2d");
+			imageManager = new ImageManager();
+			imageManager.load( {
+				"circle": "img/circle.png",
+				"house": "img/house-2.png",
+				"rect": "img/rect.png"
+			}, start);
+		}
+
+		function start() {
+			var canvasInputHandler = new InputHandler(canvas);
+			canvasInputHandler.on("up", function(e) {
+				shapeSelected = -1;
+			});
+
+			canvasInputHandler.on("down", function(e) {
+				shapeSelected = getSelectedShapeIndex(e.x, e.y);
+			});
+
+			canvasInputHandler.on("move", function(e) {
+				if (shapeSelected > -1) {
+					shapes[shapeSelected].x += e.deltaX;
+					shapes[shapeSelected].y += e.deltaY;
+				}
+			});
+			animateCanvas();
+		}
+
+		function animateCanvas() {
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+			shapes.forEach(function(shape) {
+				ctx.drawImage(imageManager.get(shape.image), shape.x, shape.y);
+			});
+
+			requestAnimationFrame(arguments.callee);
+		}
+
+		function getSelectedShapeIndex(x, y) {
+			var pixelContext = maskCanvas.getContext("2d");
+			pixelContext.clearRect(0, 0, 1, 1);
+			pixelContext.save();
+			pixelContext.translate(-x, -y);
+
+			shapes.forEach(function(shape, index) {
+				drawImageMask(imageManager.get(shape.image),
+						shape.x, shape.y, numberToColor(index + 1), pixelContext);
+			});
+
+			pixelContext.restore();
+
+			var imageData = pixelContext.getImageData(0, 0, 1, 1).data;
+
+			var index = (imageData[0] << 16 | imageData[1] << 8 | imageData[2]) - 1;
+			console.log(index.toString(16));
+			return index;
+		}
+
+		function numberToColor(n) {
+			var hexString = n.toString(16);
+			// Add padding
+			return "#" + "000000".substr(0, 6 - hexString.length) + hexString;
+		}
+
+		function drawImageMask(image, x, y, maskColor, ctx) {
+			var w = bufferCanvas.width = image.width;
+			var h = bufferCanvas.height = image.height;
+			var maskCtx = bufferCanvas.getContext("2d");
+
+			maskCtx.drawImage(image, 0, 0);
+
+			maskCtx.globalCompositeOperation = "source-atop";
+			maskCtx.fillStyle = maskColor;
+			maskCtx.fillRect(0, 0, w, h);
+
+			ctx.drawImage(bufferCanvas, x, y);
+		}
+
+		function filterAlpha(ctx, width, height) {
+			var imageData = ctx.getImageData(0, 0, width, height);
+			var pixels = imageData.data;
+			for (var i = 0; i < width*height; i++) {
+				pixels[i*4 + 3] = pixels[i*4 + 3] == 0 ? 0 : 255;
+			}
+			ctx.putImageData(imageData, 0, 0);
+		}
+
+		function initFullScreenCanvas(canvasId) {
+			var canvas = document.getElementById("mainCanvas");
+			resizeCanvas(canvas);
+			window.addEventListener("resize", function() {
+				resizeCanvas(canvas);
+			});
+			return canvas;
+		}
+
+		function resizeCanvas(canvas) {
+			canvas.width  = document.width || document.body.clientWidth;
+			canvas.height = document.height || document.body.clientHeight;
+		}
+
+	</script>
+</head>
+<body onload="init()">
+<canvas id="mainCanvas"></canvas>
+</body>
+</html>

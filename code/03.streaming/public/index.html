@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+	<style>
+		html, body {
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			margin:0;
+			padding:0;
+			border: 0;
+		}
+
+	</style>
+	<script>
+		function init() {
+            pollServer();
+        }
+
+        function pollServer() {
+            // Track the character offset in response text
+            var responseMarker = 0;
+            var xhr = new XMLHttpRequest();
+
+            console.log("Requesting");
+            xhr.open('GET', 'lobby');
+
+            xhr.onload = function(e) {
+                console.log("RESPONSE: " + xhr.responseText);
+                setTimeout(pollServer, 4); // Poll serever again after the response
+            };
+
+            xhr.onprogress = function(e) {
+                if (this.readyState == 3 && this.status == 200) {
+                    var response = xhr.responseText.substr(responseMarker);
+                    responseMarker = xhr.responseText.length;
+                    console.log(response);
+                }
+            };
+
+            xhr.onerror = function(e) {
+                console.log("Error, retrying");
+                setTimeout(pollServer, 4); // Poll serever again in case of error
+            };
+            xhr.send();
+        }
+	</script>
+</head>
+<body onload="init()">
+</body>
+</html>

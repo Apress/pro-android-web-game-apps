@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+	<style>
+		html, body {
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			margin:0;
+			padding:0;
+			border: 0;
+		}
+
+	</style>
+
+	<script src="js/utils.js"></script>
+	<script src="js/EventEmitter.js"></script>
+	<script src="js/input/InputHandlerBase.js"></script>
+	<script src="js/input/TouchInputHandler.js"></script>
+	<script src="js/input/MouseInputHandler.js"></script>
+	<script src="js/input/InputHandler.js"></script>
+	<script src="js/input/Joystick.js"></script>
+
+	<script>
+		var canvas;
+		var ctx;
+		var joystick;
+
+		var points = [];
+
+		var RECT_SIZE = 50;
+		var controlledObject = {
+			x: 100,
+			y: 100
+		};
+
+		var draggableRectSelected = false;
+
+		function init() {
+			canvas = initFullScreenCanvas("mainCanvas");
+			ctx = canvas.getContext("2d");
+
+			joystick = new Joystick(canvas);
+			var r = joystick.getControllerRadius();
+			joystick.setPosition(r + 50, canvas.height - r - 50);
+			animateCanvas();
+		}
+
+		function animateCanvas() {
+			var speed = 20;
+			var joystickRadius = joystick.getRadius();
+			if (joystickRadius > 0) {
+				var joystickAzimuth = joystick.getAzimuth();
+				var xSpeed = joystickRadius*Math.cos(joystickAzimuth)*speed;
+				var ySpeed = joystickRadius*Math.sin(joystickAzimuth)*speed;
+				controlledObject.x += xSpeed;
+				controlledObject.y += ySpeed;
+			}
+
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.fillStyle = "lightblue";
+			ctx.strokeStyle = "darkgray";
+			ctx.lineWidth = 5;
+
+			points.forEach(function(el) {
+				ctx.beginPath();
+				ctx.arc(el.x, el.y, 15, 0, Math.PI*2, false);
+				ctx.fill();
+				ctx.stroke();
+			}, this);
+
+			ctx.fillStyle = draggableRectSelected ? "lightyellow" : "lightgray";
+			ctx.fillRect(controlledObject.x - 50, controlledObject.y - 50, 100, 100);
+			ctx.strokeRect(controlledObject.x - 50, controlledObject.y - 50, 100, 100);
+
+			joystick.draw();
+
+			requestAnimationFrame(arguments.callee);
+		}
+
+		function initFullScreenCanvas(canvasId) {
+			var canvas = document.getElementById("mainCanvas");
+			resizeCanvas(canvas);
+			window.addEventListener("resize", function() {
+				resizeCanvas(canvas);
+			});
+			return canvas;
+		}
+
+		function resizeCanvas(canvas) {
+			canvas.width  = document.width || document.body.clientWidth;
+			canvas.height = document.height || document.body.clientHeight;
+		}
+	</script>
+</head>
+<body onload="init()">
+<div id="lobby">
+	<canvas id="mainCanvas" width="30" height="30"></canvas>
+</div>
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+<style>
+	html, body {
+		overflow: hidden;
+		width: 100%;
+		height: 100%;
+		margin:0;
+		padding:0;
+		border: 0;
+	}
+
+</style>
+
+<script src="js/gl-matrix.js"></script>
+<script src="js/geometry.js"></script>
+<script src="js/ImageManager.js"></script>
+
+<script>
+
+	// Canvas object
+	var imageManager;
+
+	// Canvas object
+	var canvas;
+
+	// The WebGL context
+	var gl;
+
+	// The only shader program that we'll use
+	var shaderProgram;
+
+	// Projection and modelview matrices
+	var modelViewMatrix = mat4.create();
+	var projectionMatrix = mat4.create();
+
+	// Location of parameters in shader program
+	var pMatrixUniform;
+	var mvMatrixUniform;
+	var vertexPositionAttribute;
+	var textureCoordinateAttribute;
+
+	var samplerUniform;
+
+	var vertexShaderSource =
+					"attribute vec3 aPos;" +
+					"attribute vec2 aTex;" +
+
+					"uniform mat4 uMVMatrix;" +
+					"uniform mat4 uPMatrix;" +
+
+					"varying vec2 vTex;" +
+
+					"void main(void) {" +
+						"gl_Position = uPMatrix * uMVMatrix * vec4(aPos, 1.0);" +
+						"vTex = aTex;" +
+					"}";
+
+	var fragmentShaderSource =
+					"precision mediump float;" +
+					"varying vec2 vTex;" +
+					"uniform sampler2D uSampler;" +
+
+					"void main(void) {" +
+						"gl_FragColor = texture2D(uSampler, vTex);" +
+					"}";
+
+
+	function initShaders() {
+		var fragmentShader = createShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
+		var vertexShader = createShader(gl.VERTEX_SHADER, vertexShaderSource);
+
+		shaderProgram = gl.createProgram();
+		gl.attachShader(shaderProgram, vertexShader);
+		gl.attachShader(shaderProgram, fragmentShader);
+		gl.linkProgram(shaderProgram);
+
+		if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+			alert("Error initializing shaders");
+		}
+
+		gl.useProgram(shaderProgram);
+
+		vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aPos");
+		gl.enableVertexAttribArray(vertexPositionAttribute);
+
+		textureCoordinateAttribute = gl.getAttribLocation(shaderProgram, "aTex");
+		gl.enableVertexAttribArray(textureCoordinateAttribute);
+
+		pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+		mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+		samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
+	}
+
+	function createShader(shaderType, source) {
+		var shader = gl.createShader(shaderType);
+		gl.shaderSource(shader, source);
+		gl.compileShader(shader);
+		if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+			alert(gl.getShaderInfoLog(shader));
+			return null;
+		}
+
+		return shader;
+	}
+
+	function initModel(model) {
+		model.vertexBuffer = gl.createBuffer();
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.vertices), gl.STATIC_DRAW);
+
+		model.faceBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.faceBuffer);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
+				new Uint16Array(model.faces), gl.STATIC_DRAW);
+
+		model.colorBuffer = gl.createBuffer();
+
+		model.texture = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, model.texture);
+		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imageManager.get("texture"));
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+		// Initialize one more buffer for texture coordinates
+		model.textureCoordsBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, model.textureCoordsBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.textureCoords),
+				gl.STATIC_DRAW);
+
+	}
+
+	function drawScene() {
+		gl.viewport(0, 0, canvas.width, canvas.height);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+		mat4.perspective(45, canvas.width / canvas.height, 0.1, 100.0, projectionMatrix);
+		mat4.identity(modelViewMatrix);
+		drawModel(cube);
+	}
+
+	function drawModel(model) {
+		mat4.translate(modelViewMatrix, [model.x, model.y, model.z]);
+
+		if (model.rx)
+			mat4.rotateX(modelViewMatrix, model.rx);
+
+		if (model.ry)
+			mat4.rotateY(modelViewMatrix, model.ry);
+
+		if (model.rz)
+			mat4.rotateZ(modelViewMatrix, model.rz);
+
+		gl.uniformMatrix4fv(pMatrixUniform, false, projectionMatrix);
+		gl.uniformMatrix4fv(mvMatrixUniform, false, modelViewMatrix);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
+		gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, model.textureCoordsBuffer);
+		gl.vertexAttribPointer(textureCoordinateAttribute, 2, gl.FLOAT, false, 0, 0);
+
+		gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, model.texture);
+		gl.uniform1i(samplerUniform, 0);
+
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.faceBuffer);
+		gl.drawElements(gl.TRIANGLES, model.faces.length, gl.UNSIGNED_SHORT, 0);
+	}
+
+	function init() {
+		canvas = initFullScreenCanvas("mainCanvas");
+		imageManager = new ImageManager();
+		imageManager.load({"texture": "img/texture.png"}, initWebGL);
+	}
+
+	function initWebGL() {
+		gl = getWebGLContext(canvas);
+		gl.clearColor(1.0, 1.0, 1.0, 1.0);
+		gl.enable(gl.DEPTH_TEST);
+
+		initShaders();
+		initModel(cube);
+		drawScene();
+	}
+
+	/**
+	 * Returns WebGL context.
+	 */
+	function getWebGLContext(canvas) {
+		var ctx;
+		try {
+			ctx = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+		} catch (e) {}
+
+		if (ctx)
+			return ctx;
+
+		throw "Could not initialize WebGL";
+	}
+
+	function initFullScreenCanvas(canvasId) {
+		var canvas = document.getElementById(canvasId);
+		resizeCanvas(canvas);
+		window.addEventListener("resize", function() {
+			resizeCanvas(canvas);
+		});
+		return canvas;
+	}
+
+	function resizeCanvas(canvas) {
+		canvas.width  = document.width || document.body.clientWidth;
+		canvas.height = document.height || document.body.clientHeight;
+		gl && drawScene();
+	}
+</script>
+</head>
+<body onload="init()">
+<canvas id="mainCanvas" width="20px" height="20px"></canvas>
+</body>
+</html>

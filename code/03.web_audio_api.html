@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+	<style>
+		html, body {
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			margin:0;
+			padding:0;
+			border: 0;
+		}
+
+	</style>
+	<script>
+		var context;
+		var buffer;
+		function init() {
+			try {
+				context = new webkitAudioContext();
+			} catch(e) {
+				alert('Web Audio API not supported');
+				return;
+			}
+
+			// Load the binary data from music file
+			var request = new XMLHttpRequest();
+			request.open('GET', "sound/theme.mp3", true);
+			request.responseType = 'arraybuffer';
+
+			request.onload = function() {
+				// Decode data and play sound
+				context.decodeAudioData(request.response, function(buff) {
+					buffer = buff;
+					var source = context.createBufferSource();
+					source.buffer = buffer;
+					source.connect(context.destination);
+					source.noteOn(0);
+				});
+			};
+			request.send(null);
+		}
+	</script>
+</head>
+<body onload="init()">
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>OOP</title>
+        <script src="js/utils.js"></script>
+        <script>
+            function Car(color) {
+                this._color = color;
+            }
+
+            Car.prototype.move = function() {
+                console.log(this._color + " car moves");
+            };
+
+            Car.prototype.turn = function(direction) {
+                console.log(this._color + "car turns " + direction);
+            };
+
+            Car.prototype.stop = function() {
+                console.log(this._color + " car stops");
+            };
+
+            function FireTruck() {
+                Car.call(this, "red");
+            }
+
+            extend(FireTruck, Car);
+
+            FireTruck.prototype.turnCannon = function(direction) {
+                console.log("Cannon moves to the " + direction);
+            };
+
+            var truck = new FireTruck();
+            truck.move();
+            truck.turnCannon("right");
+        </script>
+    </head>
+    <body></body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<script src="js/utils.js"></script>
+	<script>
+		function init() {
+			var canvas = document.getElementById("mainCanvas");
+			var ctx = canvas.getContext("2d");
+
+			ctx.fillStyle = "lightgray";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+			if (isTouchDevice()) {
+				canvas.addEventListener("touchstart", function(e) {
+					for (var i = 0; i < e.targetTouches.length; i++) {
+						var coords = getInputCoordinates(e.targetTouches[i], canvas);
+						drawBullet(coords.x, coords.y, ctx);
+					}
+					e.stopPropagation();
+					e.preventDefault();
+				}, false);
+			} else {
+				canvas.addEventListener("mousedown", function(e) {
+					var coords = getInputCoordinates(e, canvas);
+					drawBullet(coords.x, coords.y, ctx);
+					e.stopPropagation();
+					e.preventDefault();
+				}, false);
+			}
+		}
+
+		function getInputCoordinates(e, element) {
+			return {
+				x: (e.pageX || e.clientX + document.body.scrollLeft) - element.offsetLeft,
+				y: (e.pageY || e.clientY + document.body.scrollTop) - element.offsetTop
+			}
+		}
+
+		function drawBullet(x, y, ctx) {
+			ctx.fillStyle = "darkred";
+			ctx.strokeStyle = "black";
+			ctx.lineWidth = 4;
+			ctx.beginPath();
+			ctx.arc(x, y, 15, 0, 2*Math.PI, false);
+			ctx.fill();
+			ctx.stroke();
+		}
+
+	</script>
+</head>
+<body onload="init()">
+	<div style="height: 250px"></div>
+	<canvas id="mainCanvas" width="400" height="400"></canvas>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+	<style>
+		html, body {
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			margin:0;
+			padding:0;
+			border: 0;
+		}
+
+	</style>
+	<script>
+		var audio;
+		function init() {
+			audio = new Audio("sound/theme.mp3");
+		}
+
+		function play() {
+			audio.play();
+		}
+
+		function pause() {
+			audio.pause();
+		}
+
+		function changeVolume(deltaVolume) {
+			audio.volume += deltaVolume;
+		}
+	</script>
+</head>
+<body onload="init()">
+<div>
+	<button onclick="play()">Play</button>
+	<button onclick="pause()">Pause</button>
+	<button onclick="changeVolume(0.2)">Vol. Up</button>
+	<button onclick="changeVolume(-0.2)">Vol. Down</button>
+</div>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+	<style>
+		html, body {
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			margin:0;
+			padding:0;
+			border: 0;
+		}
+
+		.xstats {
+			position: absolute;
+			top: 0;
+			left: 0;
+		}
+
+	</style>
+	<script src="js/utils.js"></script>
+	<script src="js/world.js"></script>
+
+	<script src="js/ImageManager.js"></script>
+
+	<script src="js/EventEmitter.js"></script>
+	<script src="js/input/InputHandlerBase.js"></script>
+	<script src="js/input/MouseInputHandler.js"></script>
+	<script src="js/input/TouchInputHandler.js"></script>
+	<script src="js/input/InputHandler.js"></script>
+
+	<script src="js/MapRenderer.js"></script>
+	<script src="js/xstats.js"></script>
+
+	<script>
+
+		var canvas;
+		var ctx;
+		var imageManager;
+		var inputHandler;
+		var mapRenderer;
+
+		var images = {
+			"tiles": "img/tiles.png"
+		};
+
+		function init() {
+			imageManager = new ImageManager();
+			imageManager.load(images, onLoaded);
+
+			canvas = initFullScreenCanvas("mainCanvas");
+			ctx = canvas.getContext("2d");
+
+			inputHandler = new InputHandler(canvas);
+			inputHandler.on("move", onMove);
+
+			var stats = new xStats();
+			document.body.appendChild(stats.element);
+		}
+
+		/** Once all images are loaded - starts the animation loop */
+		function onLoaded() {
+			mapRenderer = new MapRenderer(world, imageManager.get("tiles"),
+					40, canvas.width, canvas.height);
+			animate(0);
+		}
+
+		/** Perform rendering here */
+		function animate(t) {
+			clear();
+			mapRenderer.draw(ctx);
+			requestAnimationFrame(arguments.callee);
+		}
+
+		/** Handle map move */
+		function onMove(e) {
+			mapRenderer.move(e.deltaX, e.deltaY);
+		}
+
+		/* Clears the canvas with the solid black color */
+		function clear() {
+			ctx.fillStyle = "black";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+		}
+
+		function initFullScreenCanvas(canvasId) {
+			var canvas = document.getElementById(canvasId);
+			resizeCanvas(canvas);
+			window.addEventListener("resize", function() {
+				resizeCanvas(canvas);
+			});
+			return canvas;
+		}
+
+		function resizeCanvas(canvas) {
+			canvas.width  = document.width || document.body.clientWidth;
+			canvas.height = document.height || document.body.clientHeight;
+			mapRenderer && mapRenderer.setViewportSize(canvas.width, canvas.height);
+		}
+
+	</script>
+</head>
+<body onload="init()">
+<canvas id="mainCanvas" width="500px" height="500px"></canvas>
+</body>
+</html>

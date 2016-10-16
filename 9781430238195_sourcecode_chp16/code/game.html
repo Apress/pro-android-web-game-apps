@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+	<style>
+		html, body {
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			margin:0;
+			padding:0;
+			border: 0;
+		}
+
+	</style>
+	<script src="js/crafty.js"></script>
+	<script src="js/soundmanager2.js"></script>
+	
+	<script>
+		var images = ["img/terrain.png", "img/house-1.png", "img/house-2.png",
+			"img/arch-left.png", "img/arch-right.png", "img/knight.png"];
+
+		var ground = [
+			["grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass"],
+			["grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass"],
+			["grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass"],
+			["grass", "grass2", "roadSW", "grass", "grass", "grass", "grass", "grass"],
+			["grass", "grass", "roadWE", "roadNS", "grass", "grass", "grass", "grass"],
+			["grass", "roadSE", "grass", "roadNS", "grass", "grass", "grass", "grass"],
+			["grass", "grass2", "roadNS", "grass2", "roadNS", "grass", "grass", "grass"],
+			["grass", "grass", "roadNW", "grass", "roadNS", "grass", "grass", "grass"],
+			["grass", "grass", "roadWE", "grass", "grass", "roadNS", "grass", "grass"],
+			["grass", "roadWE", "grass2", "grass", "grass", "roadNW", "grass", "grass"],
+			["grass", "roadSE", "grass", "grass", "grass", "roadWE", "grass", "grass"],
+			["grass", "roadNS", "grass", "grass", "roadWE", "grass", "grass", "grass"],
+			["grass", "grass", "roadNS", "grass", "roadWE", "grass", "grass", "grass"],
+			["grass", "grass", "roadNS", "roadWE", "grass", "grass", "grass", "grass"],
+			["grass", "grass", "grass", "roadNE", "grass", "grass", "grass", "grass"],
+			["grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass"],
+			["grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass"]
+		];
+
+		var objects = [
+			{ sprite: "house2", x: 290, y: 198 },
+			{ sprite: "house1", x: 476, y: 282 },
+			{ sprite: "archRight", x: 553, y: 85},
+			{ sprite: "archLeft", x: 440, y: 92}
+		];
+
+
+		var logo = { sprite: "img/logo.png", width: 420, height: 75 };
+		var winBanner = { sprite: "img/win.png", width: 420, height: 55 };
+		var gameOverBanner = { sprite: "img/gameover.png", width: 420, height: 55 };
+
+		var offsetX = -90;
+		var offsetY = -70;
+
+		/**
+		 * Sounds used:
+		 * http://www.freesound.org/people/zippi1/sounds/18450/
+		 * http://www.freesound.org/people/vitriolix/sounds/778/
+		 * http://www.freesound.org/people/ERH/sounds/30192/
+		 */
+
+		soundManager.url = 'swf/';
+		soundManager.flashVersion = 9;
+		soundManager.onready(function() {
+			soundManager.createSound({
+				id: 'theme',
+				url: 'sound/theme.mp3',
+				loops: 10000,
+				autoLoad: true,
+				volume: 25,
+				onload:function() {
+					this.play();
+				}
+			});
+
+			soundManager.createSound({
+				id: 'click',
+				url: 'sound/click.mp3',
+				autoLoad: true
+			});
+
+			soundManager.createSound({
+				id: 'gameover',
+				url: 'sound/gameover.mp3',
+				autoLoad: true,
+				volume: 40
+			});
+
+		});
+
+		window.onload = function() {
+			// Init crafty in full screen
+			Crafty.init();
+
+			// Init canvas
+			Crafty.canvas.init();
+
+			Crafty.scene("loading", function() {
+				Crafty.background("#000");
+				showLogo();
+				var startTime = new Date().getTime();
+				Crafty.load(images,
+					function() {
+						var timeLoading = new Date().getTime() - startTime;
+
+						setTimeout(function() {
+							Crafty.scene("game");
+						}, Math.max(700 - timeLoading, 0));
+					});
+			});
+
+			Crafty.scene("game", function() {
+				createSprites();
+				drawTerrain();
+				drawObjects();
+				drawKnight();
+
+				// Once we get win event - go to "win" scene
+				Crafty.bind("Win", function() {
+					Crafty.scene("win");
+				});
+
+				// Once we get GameOver event - go to "gameover" scene
+				Crafty.bind("GameOver", function() {
+					Crafty.scene("gameover");
+				});
+				
+				Crafty.addEvent(this, window, "touchstart", function (e) {
+					e.preventDefault();
+					soundManager.getSoundById("click").play();
+				});
+				
+				Crafty.addEvent(this, window, "mousedown", function (e) {
+					e.preventDefault();
+					soundManager.getSoundById("click").play();
+				});
+			});
+
+			Crafty.scene("gameover", function() {
+				playGameoverSound();
+				showGameOverBanner();
+			});
+
+			Crafty.scene("win", function() {
+				playGameoverSound();
+				showWinBanner();
+			});
+
+			// Start the "loading" scene
+			Crafty.scene("loading");
+		};
+
+		function showLogo() {
+			Crafty.sprite(logo.width, logo.height, logo.sprite, { logo: [0,0] });
+			Crafty.e("2D, Canvas, logo").attr({
+				x: (Crafty.DOM.window.width - logo.width)/2,
+				y: (Crafty.DOM.window.height - logo.height)/2
+			});
+		}
+
+		function showWinBanner() {
+			Crafty.sprite(winBanner.width, winBanner.height, winBanner.sprite, { winBanner: [0,0] });
+			Crafty.e("2D, Canvas, winBanner").attr({
+				x: (Crafty.DOM.window.width - logo.width)/2,
+				y: (Crafty.DOM.window.height - logo.height)/2
+			});
+		}
+
+		function showGameOverBanner() {
+			Crafty.sprite(gameOverBanner.width, gameOverBanner.height, gameOverBanner.sprite, { gameOverBanner: [0,0] });
+			Crafty.e("2D, Canvas, gameOverBanner").attr({
+				x: (Crafty.DOM.window.width - logo.width)/2,
+				y: (Crafty.DOM.window.height - logo.height)/2
+			});
+		}
+
+		function createSprites() {
+			Crafty.sprite(128, 68, "img/terrain.png", {
+				grass: [0,0], grass2: [1,0], roadNW: [2,0],
+				bricks: [0,1], roadSW: [1,1], roadNS: [2,1],
+				roadWE: [0,2], roadNE: [1,2], roadSE: [2,2]
+			});
+
+			Crafty.sprite(159, 148, "img/knight.png", { knight: [0,0] });
+			Crafty.sprite(128, 106, "img/house-1.png", { house1: [0,0] });
+			Crafty.sprite(128, 159, "img/house-2.png", { house2: [0,0] });
+			Crafty.sprite(151, 183, "img/arch-left.png", { archLeft: [0,0] });
+			Crafty.sprite(142, 130, "img/arch-right.png", { archRight: [0,0] });
+		}
+
+		function drawTerrain() {
+			for (var j = 0; j < ground.length; j++) {
+				for (var i = 0; i < ground[j].length; i++) {
+					Crafty.e("2D, Canvas, " + ground[j][i]).attr(
+							{x: offsetX + i*124 + (j%2)*62, y: offsetY + j*31}
+					);
+				}
+			}
+		}
+
+		function drawObjects() {
+			objects.forEach(function(object) {
+				Crafty.e("2D, Canvas, " + object.sprite).attr(
+						{x: offsetX + object.x, y: offsetY + object.y}
+				);
+			});
+		}
+
+		function drawKnight() {
+			Crafty.e("2D, Canvas, knight, SpriteAnimation, Mouse")
+				.attr({x: 20, y: 170})
+				.animate("move_right", 0, 0, 15)
+				.animate("move_right", 15, -1)
+				.bind("EnterFrame", function() {
+					this.x += 0.8;
+					this.y += 0.4;
+					if (this.x > 450) {
+						Crafty.trigger("GameOver");
+					}
+				}).bind("MouseDown", function() {
+					Crafty.trigger("Win");
+				});
+		}
+		
+		function playGameoverSound() {
+			soundManager.getSoundById("theme").stop();
+			soundManager.getSoundById("gameover").play();
+		}
+	</script>
+</head>
+<body>
+
+</body>
+</html>

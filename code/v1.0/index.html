@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+	<style>
+		html, body {
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			margin:0;
+			padding:0;
+			border: 0;
+		}
+
+		div {
+			margin: 0;
+			padding: 0;
+			border: 0;
+		}
+
+	</style>
+	<script src="js/utils.js"></script>
+	<script src="js/ImageManager.js"></script>
+
+	<script src="js/EventEmitter.js"></script>
+	<script src="js/input/InputHandlerBase.js"></script>
+	<script src="js/input/MouseInputHandler.js"></script>
+	<script src="js/input/TouchInputHandler.js"></script>
+	<script src="js/input/InputHandler.js"></script>
+
+
+	<script src="js/Rect.js"></script>
+	<script src="js/map/Grid.js"></script>
+    <script src="js/GameObject.js"></script>
+	<script src="js/map/DirtyRectangleManager.js"></script>
+	<script src="js/map/StaticImage.js"></script>
+	<script src="js/map/ObjectLayer.js"></script>
+	<script src="js/map/LayerManager.js"></script>
+
+	<script src="js/map/IsometricTileLayer.js"></script>
+	<script src="js/map/UiLayer.js"></script>
+
+	<script src="js/map/RoundStateButton.js"></script>
+	<script src="js/Game.js"></script>
+	<script src="js/Level.js"></script>
+
+
+
+	<script>
+		var game;
+		function init() {
+			var canvas = initFullScreenCanvas("mainCanvas");
+			game = new Game(canvas, levelMap);
+		}
+
+		function initFullScreenCanvas(canvasId) {
+			var canvas = document.getElementById(canvasId);
+			resizeCanvas(canvas);
+			window.addEventListener("resize", function() {
+				resizeCanvas(canvas);
+			});
+			return canvas;
+		}
+
+		function resizeCanvas(canvas) {
+			canvas.width  = document.width || document.body.clientWidth;
+			canvas.height = document.height || document.body.clientHeight;
+			game && game.resize();
+		}
+
+	</script>
+</head>
+<body onload="init()">
+<canvas id="mainCanvas" width="700" height="500"></canvas>
+
+<canvas id="debugCanvas" width="700" height="500" style="float: right;"></canvas>
+</body>
+</html>

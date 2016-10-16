@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+	<style>
+		html, body {
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			margin:0;
+			padding:0;
+			border: 0;
+		}
+
+	</style>
+	<script src="js/utils.js"></script>
+	<script src="js/Animator.js"></script>
+
+	<script>
+
+		var ctx;
+		var animator;
+		var lastUpdate = new Date();
+
+		function init() {
+			ctx = initFullScreenCanvas("mainCanvas").getContext("2d");
+
+			animator = new Animator(1000);
+			animator.setRepeatCount(Animator.INFINITE);
+			animator.setRepeatBehavior(Animator.RepeatBehavior.REVERSE);
+			animator.setAcceleration(0.8);
+			animator.setDeceleration(0.15);
+			animator.start();
+
+			animate(0);
+		}
+
+		function animate(t) {
+			var startX = 50;
+			var endX = 300;
+
+			var now = t || new Date().getTime();
+			var deltaTime = now - lastUpdate;
+			lastUpdate = now;
+
+			var fraction = animator.update(deltaTime);
+			var x = (1 - fraction)*startX + fraction*endX;
+
+			ctx.fillStyle = "white";
+			ctx.fillRect(0, 0, 500, 500);
+
+			drawBounds(startX, endX, ctx);
+			drawBullet(x, 50, ctx);
+			requestAnimationFrame(arguments.callee);
+		}
+
+		function drawBounds(startX, endX, ctx) {
+			ctx.strokeStyle = "lightblue";
+			ctx.lineWidth = 3;
+			ctx.beginPath();
+			ctx.moveTo(startX, 0);
+			ctx.lineTo(startX, 100);
+			ctx.moveTo(endX, 0);
+			ctx.lineTo(endX, 100);
+			ctx.closePath();
+			ctx.stroke();
+		}
+
+		function drawBullet(x, y, ctx) {
+			var grad = ctx.createRadialGradient(x + 5, y - 5, 4, x + 5, y - 5, 22);
+			grad.addColorStop(0, "yellow");
+			grad.addColorStop(1, "red");
+
+			ctx.fillStyle = grad;
+			ctx.lineWidth = 3;
+			ctx.beginPath();
+			ctx.arc(x, y, 20, 0, 2*Math.PI, false);
+			ctx.fill();
+		}
+
+		function initFullScreenCanvas(canvasId) {
+			var canvas = document.getElementById(canvasId);
+			resizeCanvas(canvas);
+			window.addEventListener("resize", function() {
+				resizeCanvas(canvas);
+			});
+			return canvas;
+		}
+
+		function resizeCanvas(canvas) {
+			canvas.width  = document.width || document.body.clientWidth;
+			canvas.height = document.height || document.body.clientHeight;
+		}
+
+	</script>
+</head>
+	<body onload="init()">
+		<canvas id="mainCanvas" width="500px" height="500px"></canvas>
+	</body>
+</html>

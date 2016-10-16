@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+	<style>
+		html, body {
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			margin:0;
+			padding:0;
+			border: 0;
+		}
+	</style>
+	<script>
+		function init() {
+			var canvas = initFullScreenCanvas("mainCanvas");
+			var ctx = canvas.getContext("2d");
+			canvas.addEventListener("touchstart", function(e) {
+				for (var i = 0; i < e.targetTouches.length; i++) {
+					drawBullet(
+						e.targetTouches[i].pageX,
+						e.targetTouches[i].pageY, ctx);
+				}
+				e.stopPropagation();
+				e.preventDefault();
+			}, false);
+		}
+
+		function drawBullet(x, y, ctx) {
+			ctx.fillStyle = "darkred";
+			ctx.strokeStyle = "black";
+			ctx.lineWidth = 4;
+			ctx.beginPath();
+			ctx.arc(x, y, 15, 0, 2*Math.PI, false);
+			ctx.fill();
+			ctx.stroke();
+		}
+
+		function initFullScreenCanvas(canvasId) {
+			var canvas = document.getElementById(canvasId);
+			resizeCanvas(canvas);
+			window.addEventListener("resize", function() {
+				resizeCanvas(canvas);
+			});
+			return canvas;
+		}
+
+		function resizeCanvas(canvas) {
+			canvas.width  = document.width || document.body.clientWidth;
+			canvas.height = document.height || document.body.clientHeight;
+		}
+
+	</script>
+</head>
+<body onload="init()">
+<canvas id="mainCanvas" width="100" height="100"></canvas>
+</body>
+</html>

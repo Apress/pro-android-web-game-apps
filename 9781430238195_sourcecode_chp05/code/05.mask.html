@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+	<style>
+		#wrapper {
+			width: 750px;
+		}
+		canvas {
+			margin-right: 30px;
+		}
+	</style>
+
+	<script src="js/utils.js"></script>
+	<script src="js/EventEmitter.js"></script>
+	<script src="js/input/InputHandlerBase.js"></script>
+	<script src="js/input/TouchInputHandler.js"></script>
+	<script src="js/input/MouseInputHandler.js"></script>
+	<script src="js/input/InputHandler.js"></script>
+	<script src="js/ImageManager.js"></script>
+
+	<script>
+		var contexts = [];
+		var imageManager;
+
+		function init() {
+			for (var i = 0; i < 3; i++) {
+				contexts.push(appendCanvas().getContext("2d"));
+			}
+
+			imageManager = new ImageManager();
+			imageManager.load( {
+				"house": "img/house-2.png"
+			}, start);
+		}
+
+		function appendCanvas() {
+			var canvas = document.createElement("canvas");
+			canvas.width = canvas.height = 200;
+			document.getElementById("wrapper").appendChild(canvas);
+			return canvas;
+		}
+
+		function start() {
+			// Destination
+			var context = contexts[0];
+			context.drawImage(imageManager.get("house"), 0, 0);
+
+			// Source
+			context = contexts[1];
+			context.fillStyle = "darkgoldenrod";
+			context.fillRect(0, 0, 200, 200);
+
+			// Composite
+			context = contexts[2];
+			context.drawImage(imageManager.get("house"), 0, 0);
+			context.globalCompositeOperation = "source-atop";
+			context.fillStyle = "darkgoldenrod";
+			context.fillRect(0, 0, 200, 200);
+		}
+	</script>
+</head>
+<body onload="init()">
+	<div id="wrapper"></div>
+</body>
+</html>

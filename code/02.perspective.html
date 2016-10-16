@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi"/>
+
+	<style>
+		html, body {
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			margin:0;
+			padding:0;
+			border: 0;
+		}
+
+		.xstats {
+			position: absolute;
+			top: 0;
+			left: 0;
+		}
+	</style>
+	<script src="js/utils.js"></script>
+	<script src="js/gl-matrix-min.js"></script>
+	<script>
+		var canvas = null;
+		var ctx = null;
+
+		var X = 0;
+		var Y = 1;
+		var Z = 2;
+		var W = 3;
+
+		var vertices = [
+			[-1, -1, -1],  [-1, -1,  1],  [-1,  1, -1],  [-1,  1,  1],
+			[1, -1, -1], [1, -1,  1], [1,  1, -1], [1,  1,  1]
+		];
+
+		var edges = [
+			[0, 1],  [0, 2], [0, 4], [1, 3],
+			[1, 5], [2, 3], [2, 6], [3, 7],
+			[4, 5], [4, 6], [5, 7], [6, 7]
+		];
+
+		var xRot = 0;
+		var yRot = 0;
+
+		function init() {
+			canvas = initFullScreenCanvas("mainCanvas");
+			ctx = canvas.getContext("2d");
+			animate(0);
+		}
+
+		function animate(t) {
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			renderCube();
+			requestAnimationFrame(arguments.callee);
+		}
+
+		function renderCube() {
+
+			var modelView = mat4.create();
+			mat4.identity(modelView); // Set to identity
+			mat4.translate(modelView, [0, 0, -10]);
+			mat4.rotateX(modelView, xRot);
+			mat4.rotateY(modelView, yRot);
+
+			var persp = mat4.create();
+			mat4.perspective(45, canvas.width/canvas.height, 0.1, 100, persp);
+
+			var points = [];
+
+			for (var i = 0; i < vertices.length; i++) {
+				var point = [vertices[i][X], vertices[i][Y], vertices[i][Z], 1];
+				mat4.multiplyVec4(modelView, point);
+				mat4.multiplyVec4(persp, point);
+
+				var ndcPoint = [
+					point[X]/point[W],
+					point[Y]/point[W]
+				];
+
+				points[i] = [
+					Math.round(canvas.width/2*(1 + ndcPoint[0])),
+					Math.round(canvas.height/2*(1 - ndcPoint[1]))];
+			}
+
+			ctx.strokeStyle = "black";
+
+			// draw the wireframe
+			ctx.beginPath();
+			for (i = 0; i < edges.length; i++ ) {
+				ctx.moveTo(points[ edges[i][0] ][X], points[ edges[i][0] ][Y]);
+				ctx.lineTo(points[ edges[i][1] ][X], points[ edges[i][1] ][Y]);
+			}
+
+			ctx.stroke();
+			ctx.closePath();
+			xRot += 0.01;
+			yRot += 0.01;
+		}
+
+		function initFullScreenCanvas(canvasId) {
+			var canvas = document.getElementById(canvasId);
+			resizeCanvas(canvas);
+			window.addEventListener("resize", function() {
+				resizeCanvas(canvas);
+			});
+			return canvas;
+		}
+
+		function resizeCanvas(canvas) {
+			canvas.width  = document.width || document.body.clientWidth;
+			canvas.height = document.height || document.body.clientHeight;
+		}
+	</script>
+</head>
+	<body onload="init()">
+		<canvas id="mainCanvas" width="30px" height="30px"></canvas>
+	</body>
+</html>
